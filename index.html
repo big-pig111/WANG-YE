@@ -1,0 +1,609 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISE | no more falling</title>
+    <link rel="icon" type="image/png" href="img/R.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none !important; /* Force hide all cursors */
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 70%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: none; /* Remove transition for instant movement */
+            box-shadow: 0 0 25px rgba(255,255,255,0.6), 0 0 50px rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .custom-cursor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
+
+        .custom-cursor.clicked {
+            transform: scale(0.7);
+            background: radial-gradient(circle, rgba(0,255,128,0.9) 0%, rgba(0,255,128,0.4) 40%, transparent 70%);
+            box-shadow: 0 0 35px rgba(0,255,128,0.8), 0 0 70px rgba(0,255,128,0.5);
+            border-color: rgba(0,255,128,0.5);
+        }
+
+        .custom-cursor.clicked::before {
+            background: #00ff80;
+            box-shadow: 0 0 15px rgba(0,255,128,0.9);
+        }
+
+        .canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #mainCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .ui-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .rise-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(4rem, 12vw, 8rem);
+            font-weight: 900;
+            letter-spacing: 0.5em;
+            background: linear-gradient(
+                45deg,
+                #00ff80,
+                #40e0d0,
+                #00bfff,
+                #00ff80
+            );
+            background-size: 400% 400%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowRise 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            filter: drop-shadow(0 0 20px rgba(0, 255, 128, 0.6));
+            opacity: 0.9;
+        }
+
+        .slogan {
+            position: absolute;
+            top: calc(50% + 5rem);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(0.8rem, 2vw, 1.2rem);
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            color: rgba(0, 255, 128, 0.7);
+            text-shadow: 0 0 10px rgba(0, 255, 128, 0.3);
+            animation: pulseSlogan 4s ease-in-out infinite;
+        }
+
+        @keyframes rainbowRise {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes pulseSlogan {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .x-logo {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            pointer-events: all;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
+        }
+
+        .x-logo:hover {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 6px 20px rgba(255, 255, 255, 0.5));
+        }
+
+        .x-logo svg {
+            width: 100%;
+            height: 100%;
+            fill: #ffffff;
+            transition: fill 0.3s ease;
+        }
+
+        .x-logo:hover svg {
+            fill: #00ff80;
+        }
+
+        .sound-toggle {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            pointer-events: all;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .sound-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .sound-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+            transition: fill 0.3s ease;
+        }
+
+        .sound-toggle:hover svg {
+            fill: #00ff80;
+        }
+
+        .sound-toggle.muted svg {
+            fill: #ff4444;
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            z-index: 5;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            animation: grain 0.5s infinite;
+        }
+
+        @keyframes grain {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-1px, -1px); }
+            20% { transform: translate(1px, -1px); }
+            30% { transform: translate(-1px, 1px); }
+            40% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -1px); }
+            60% { transform: translate(1px, -1px); }
+            70% { transform: translate(-1px, 1px); }
+            80% { transform: translate(1px, 1px); }
+            90% { transform: translate(-1px, -1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.3) 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .loading {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor" id="cursor"></div>
+    <div class="grain-overlay"></div>
+    <div class="vignette"></div>
+    
+    <div class="canvas-container">
+        <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <div class="ui-layer">
+        <div class="rise-text">$RISE</div>
+        <div class="slogan">no more falling</div>
+        
+        <div class="sound-toggle" id="soundToggle">
+            <svg viewBox="0 0 24 24" id="soundIcon">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </div>
+        
+        <a href="https://x.com/i/communities/1924086007302848530" class="x-logo" target="_blank">
+            <svg viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="loading" id="loading">Initializing ascension field...</div>
+
+    <audio id="ambientSound" loop>
+        <source src="data:audio/wav;base64,UklGRhIGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU4GAACB..." type="audio/wav">
+    </audio>
+
+    <audio id="clickSound" loop>
+        <source src="audio/song.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const loading = document.getElementById('loading');
+        let soundEnabled = false;
+        let clickSoundEnabled = true;
+        let musicStarted = false;
+        let musicMuted = false; // Müziğin mute durumunu takip et
+        const cursor = document.getElementById('cursor');
+        const clickSound = document.getElementById('clickSound');
+        
+        let width, height;
+        let time = 0;
+        let fragments = [];
+        let mouseX = 0, mouseY = 0;
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Fragment {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = -(Math.random() * 0.24 + 0.16);
+                this.life = 1;
+                this.decay = Math.random() * 0.002 + 0.001;
+                this.size = Math.random() * 60 + 25;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.03;
+                this.color = this.getColor();
+                this.trail = [];
+                this.maxTrail = 15;
+                this.type = Math.floor(Math.random() * 3);
+                this.frequency = Math.random() * 0.01 + 0.005;
+                this.amplitude = Math.random() * 20 + 5;
+                this.gravity = -0.004;
+                this.fade = false;
+                this.fadeStart = height * 0.2;
+                this.active = true;
+                this.respawnTime = Math.random() * 120 + 180;
+                this.timeAlive = 0;
+            }
+
+            getColor() {
+                const colors = [
+                    [0, 255, 128],    // Bright green
+                    [64, 224, 208],   // Turquoise
+                    [0, 191, 255],    // Deep sky blue
+                    [50, 205, 50],    // Lime green
+                    [0, 255, 255],    // Cyan
+                    [32, 178, 170],   // Light sea green
+                    [127, 255, 212],  // Aquamarine
+                    [102, 205, 170]   // Medium aquamarine
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                if (!this.active) return;
+
+                this.timeAlive++;
+
+                // Add current position to trail with life info
+                this.trail.push({ x: this.x, y: this.y, life: this.life, time: time });
+                
+                // Clean old trail points more aggressively
+                if (this.trail.length > this.maxTrail) {
+                    this.trail.shift();
+                }
+                
+                // Remove trail points older than 180 frames (3 seconds at 60fps)
+                this.trail = this.trail.filter(point => time - point.time < 180);
+
+                // Graceful wave motion
+                this.x += this.vx + Math.sin(time * this.frequency + this.y * 0.001) * this.amplitude * 0.01;
+                this.y += this.vy;
+                
+                // NEGATIVE gravity for upward movement
+                this.vy += this.gravity;
+                
+                // Air resistance for more natural movement
+                this.vx *= 0.998;
+                this.vy *= 0.999;
+                
+                // Gentle mouse interaction
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 150) {
+                    const force = (150 - dist) / 150 * 0.2;
+                    this.vx += dx / dist * force;
+                    this.vy += dy / dist * force;
+                }
+
+                this.rotation += this.rotationSpeed;
+
+                // Fade out as it reaches TOP portion of screen
+                if (this.y < this.fadeStart) {
+                    this.fade = true;
+                    const fadeProgress = (this.fadeStart - this.y) / this.fadeStart;
+                    this.life = Math.max(0, 1 - fadeProgress * 1.5);
+                } else {
+                    this.life -= this.decay;
+                }
+
+                // Respawn logic - when goes off screen from TOP or dies
+                if (this.y < -300 || this.life <= 0) {
+                    this.respawn();
+                }
+            }
+
+            respawn() {
+                this.x = Math.random() * width;
+                this.y = height + 100 + Math.random() * 300; // Alt taraftan başlat
+                this.vx = (Math.random() - 0.5) * 0.4; // %20 yavaşlatıldı
+                this.vy = -(Math.random() * 0.24 + 0.16); // %20 yavaşlatıldı
+                this.life = 1;
+                this.color = this.getColor();
+                this.trail = [];
+                this.size = Math.random() * 60 + 25;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.fade = false;
+                this.fadeStart = height * 0.2;
+                this.active = true;
+                this.timeAlive = 0;
+                this.respawnTime = Math.random() * 120 + 180;
+            }
+
+            draw() {
+                if (!this.active || this.life <= 0) return;
+
+                ctx.save();
+
+                // Simplified trail drawing for better performance
+                if (this.trail.length > 1) {
+                    ctx.globalCompositeOperation = 'lighter';
+                    
+                    for (let i = 1; i < this.trail.length; i++) {
+                        const point = this.trail[i];
+                        const progress = i / this.trail.length;
+                        const alpha = progress * point.life * 0.4; // Reduced opacity
+                        const size = this.size * progress * 0.6;
+                        
+                        if (alpha > 0.02) {
+                            ctx.globalAlpha = alpha;
+                            ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${alpha})`;
+                            ctx.beginPath();
+                            ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                    
+                    ctx.globalCompositeOperation = 'source-over';
+                }
+
+                // Main fragment with simplified drawing
+                ctx.globalAlpha = this.life;
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                // Simplified gradient
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size);
+                gradient.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.life})`);
+                gradient.addColorStop(0.6, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.life * 0.5})`);
+                gradient.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 0)`);
+
+                ctx.fillStyle = gradient;
+
+                // Simple circle instead of complex shapes for better performance
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        function init() {
+            resizeCanvas();
+            
+            // Create initial fragments with staggered timing
+            for (let i = 0; i < 15; i++) {
+                fragments.push(new Fragment(
+                    Math.random() * width,
+                    height + Math.random() * height * 0.3 // Alt kısımdan başlat
+                ));
+            }
+
+            setTimeout(() => {
+                loading.style.opacity = '0';
+                setTimeout(() => loading.style.display = 'none', 1000);
+            }, 2000);
+        }
+
+        function draw() {
+            // Çok agresif background clear - izlerin tamamen kaybolması için
+            ctx.clearRect(0, 0, width, height);
+            
+            // Dark gradient background
+            const bgGradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height));
+            bgGradient.addColorStop(0, '#0a0a0a');
+            bgGradient.addColorStop(1, '#000000');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Update and draw fragments
+            fragments.forEach(fragment => {
+                fragment.update();
+                fragment.draw();
+            });
+
+            // Sürekli yeni parçacık ekleme - ALT taraftan
+            if (Math.random() < 0.02) { // %2 şans her frame'de
+                fragments.push(new Fragment(
+                    Math.random() * width,
+                    height + 100 + Math.random() * 200
+                ));
+            }
+
+            // Performance optimization - limit fragments but don't remove existing ones too aggressively
+            if (fragments.length > 30) {
+                // Remove only truly dead fragments
+                fragments = fragments.filter(f => f.active && f.life > 0);
+            }
+
+            time++;
+            requestAnimationFrame(draw);
+        }
+
+        // Custom cursor movement
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.left = e.clientX - 12 + 'px';
+            cursor.style.top = e.clientY - 12 + 'px';
+        });
+
+        // Global click handler for song.mp3 with performance optimization
+        document.addEventListener('click', (e) => {
+            // Click effect animation
+            cursor.classList.add('clicked');
+            setTimeout(() => {
+                cursor.classList.remove('clicked');
+            }, 200);
+
+            // Start music only once on first click
+            if (!musicStarted) {
+                clickSound.loop = true; // Loop the music
+                clickSound.play().catch(e => console.log('Music play failed:', e));
+                musicStarted = true;
+            }
+
+            // Add fragments at click position - they should rise from click point
+            for (let i = 0; i < 3; i++) {
+                const fragment = new Fragment(e.clientX, e.clientY);
+                // Give extra upward boost for clicked fragments (%20 yavaşlatıldı)
+                fragment.vy = -(Math.random() * 0.4 + 0.32); // Önceden (0.5 + 0.4) şimdi (0.4 + 0.32)
+                fragments.push(fragment);
+            }
+        });
+
+        // Sound control - Mute/Unmute toggle
+        document.getElementById('soundToggle').addEventListener('click', (e) => {
+            // Prevent click event from bubbling
+            e.stopPropagation();
+            
+            musicMuted = !musicMuted;
+            const soundIcon = document.getElementById('soundIcon');
+            const soundToggle = document.getElementById('soundToggle');
+            
+            if (musicMuted) {
+                // Mute music
+                clickSound.volume = 0;
+                soundToggle.classList.add('muted');
+                soundIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+            } else {
+                // Unmute music
+                clickSound.volume = 1;
+                soundToggle.classList.remove('muted');
+                soundIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+                
+                // Start music if not started yet
+                if (!musicStarted) {
+                    clickSound.loop = true;
+                    clickSound.play().catch(e => console.log('Music play failed:', e));
+                    musicStarted = true;
+                }
+            }
+        });
+
+        // Try to autoplay music when site loads
+        window.addEventListener('load', () => {
+            if (!musicStarted) {
+                clickSound.loop = true;
+                clickSound.play().then(() => {
+                    musicStarted = true;
+                }).catch(e => {
+                    console.log('Auto-play blocked, music will start on first interaction');
+                });
+            }
+        });
+
+        // Resize handler
+        window.addEventListener('resize', resizeCanvas);
+
+        // Initialize
+        init();
+        draw();
+    </script>
+</body>
+</html>
