@@ -127,6 +127,86 @@
             animation: pulseSlogan 4s ease-in-out infinite;
         }
 
+        /* Up arrows (neon green, matching UI style) */
+        .up-arrows {
+            position: absolute;
+            top: calc(50% - 7rem);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 18px;
+            opacity: 0.95;
+            pointer-events: none;
+            z-index: 12;
+        }
+
+        .up-arrows .arrow {
+            width: clamp(28px, 4vw, 44px);
+            height: clamp(28px, 4vw, 44px);
+            filter: drop-shadow(0 0 10px rgba(0,255,128,0.7)) drop-shadow(0 0 22px rgba(0,255,128,0.45));
+            --scale: 1;
+            animation: floatUp 1.8s ease-in-out infinite;
+        }
+
+        .up-arrows .arrow:nth-child(2) { --scale: 1.1; animation-duration: 2.1s; }
+        .up-arrows .arrow:nth-child(3) { --scale: 0.95; animation-duration: 1.6s; }
+
+        .up-arrows .arrow svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: #00ff80;
+            stroke-width: 2.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(10px) scale(var(--scale)); opacity: 0.7; }
+            50% { transform: translateY(-10px) scale(var(--scale)); opacity: 1; }
+            100% { transform: translateY(10px) scale(var(--scale)); opacity: 0.7; }
+        }
+
+        /* Trend (zig-zag) arrows placed around the page */
+        .trend-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 11;
+            pointer-events: none;
+        }
+
+        .trend-arrow {
+            position: absolute;
+            width: clamp(36px, 6vw, 80px);
+            height: clamp(36px, 6vw, 80px);
+            opacity: 0.85;
+            filter: drop-shadow(0 0 16px rgba(0,255,128,0.6)) drop-shadow(0 0 36px rgba(0,255,128,0.45));
+            animation: drift 3.6s ease-in-out infinite;
+        }
+
+        .trend-arrow svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .trend-arrow .line {
+            fill: none;
+            stroke: #00ff80;
+            stroke-width: 5.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .trend-arrow .head {
+            fill: #00ff80;
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(6px) var(--base-transform, none); }
+            50% { transform: translateY(-6px) var(--base-transform, none); }
+            100% { transform: translateY(6px) var(--base-transform, none); }
+        }
+
         @keyframes rainbowRise {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -267,7 +347,69 @@
     </div>
 
     <div class="ui-layer">
-        <div class="rise-text">$RISE</div>
+        <!-- distributed trend arrows -->
+        <div class="trend-layer">
+            <!-- top-left -->
+            <div class="trend-arrow" style="left: 5%; top: 12%; --base-transform: rotate(-10deg) scale(1.05); animation-duration: 3.2s;">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path class="line" d="M6 46 L20 34 L30 40 L44 26 L54 18"/>
+                    <path class="head" d="M60 12 L52 16 L56 20 Z"/>
+                </svg>
+            </div>
+            <!-- mid-left -->
+            <div class="trend-arrow" style="left: 10%; top: 56%; --base-transform: rotate(-6deg) scale(0.95); animation-duration: 3.8s;">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path class="line" d="M6 44 L18 36 L26 40 L40 28 L52 20"/>
+                    <path class="head" d="M58 14 L50 18 L54 22 Z"/>
+                </svg>
+            </div>
+            <!-- bottom-left -->
+            <div class="trend-arrow" style="left: 16%; bottom: 8%; --base-transform: rotate(-4deg) scale(1.15); animation-duration: 3.1s;">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path class="line" d="M6 46 L22 34 L30 40 L46 24 L54 16"/>
+                    <path class="head" d="M60 10 L52 14 L56 18 Z"/>
+                </svg>
+            </div>
+            <!-- top-right -->
+            <div class="trend-arrow" style="right: 6%; top: 10%; --base-transform: rotate(8deg) scale(1.1); animation-duration: 3.4s;">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path class="line" d="M6 46 L20 34 L30 40 L44 26 L54 18"/>
+                    <path class="head" d="M60 12 L52 16 L56 20 Z"/>
+                </svg>
+            </div>
+            <!-- mid-right -->
+            <div class="trend-arrow" style="right: 12%; top: 58%; --base-transform: rotate(12deg) scale(0.9); animation-duration: 3.9s;">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path class="line" d="M6 44 L18 36 L26 40 L40 28 L52 20"/>
+                    <path class="head" d="M58 14 L50 18 L54 22 Z"/>
+                </svg>
+            </div>
+            <!-- bottom-right -->
+            <div class="trend-arrow" style="right: 18%; bottom: 10%; --base-transform: rotate(6deg) scale(1.2); animation-duration: 3.0s;">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path class="line" d="M6 46 L22 34 L30 40 L46 24 L54 16"/>
+                    <path class="head" d="M60 10 L52 14 L56 18 Z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="up-arrows">
+            <div class="arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 19V5M12 5l-7 7M12 5l7 7"/>
+                </svg>
+            </div>
+            <div class="arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 19V5M12 5l-7 7M12 5l7 7"/>
+                </svg>
+            </div>
+            <div class="arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 19V5M12 5l-7 7M12 5l7 7"/>
+                </svg>
+            </div>
+        </div>
+        <div class="rise-text">$UPUPUP</div>
         <div class="slogan">no more falling</div>
         
         <div class="sound-toggle" id="soundToggle">
